@@ -6,22 +6,27 @@ using UnityEngine.UI;
 
 public class MainManager : MonoBehaviour
 {
+
     public Brick BrickPrefab;
     public int LineCount = 6;
     public Rigidbody Ball;
 
     public Text ScoreText;
     public GameObject GameOverText;
+    public Text bestScoreText;
     
     private bool m_Started = false;
     private int m_Points;
     
     private bool m_GameOver = false;
 
-    
+    public static MainManager mainManagerObject;
+
+
     // Start is called before the first frame update
     void Start()
     {
+
         const float step = 0.6f;
         int perLine = Mathf.FloorToInt(4.0f / step);
         
@@ -36,10 +41,19 @@ public class MainManager : MonoBehaviour
                 brick.onDestroyed.AddListener(AddPoint);
             }
         }
+
+
+        ScoreText.text = DataManager.dataManager.playerName + "'s Score: 0";
+        SetBestScore();
+
+
+
     }
 
     private void Update()
     {
+
+
         if (!m_Started)
         {
             if (Input.GetKeyDown(KeyCode.Space))
@@ -57,20 +71,50 @@ public class MainManager : MonoBehaviour
         {
             if (Input.GetKeyDown(KeyCode.Space))
             {
-                SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
+                DataManager.dataManager.SaveRecord(DataManager.dataManager.bestScore);
+                SceneManager.LoadScene("main");
             }
+            else if (Input.GetKeyDown(KeyCode.Escape) || Input.GetKeyDown(KeyCode.Q))
+            {
+
+
+                SceneManager.LoadScene("start menu");
+
+            }
+        
         }
+        
+
+        
     }
 
     void AddPoint(int point)
     {
         m_Points += point;
         ScoreText.text = $"Score : {m_Points}";
+        ScoreText.text = DataManager.dataManager.playerName + "'s " + ScoreText.text;
+        DataManager.dataManager.SaveRecord(m_Points);
     }
 
     public void GameOver()
     {
         m_GameOver = true;
         GameOverText.SetActive(true);
+    }
+
+    void SetBestScore()
+    {
+        DataManager.dataManager.LoadRecord();
+        string bestPlayer = DataManager.dataManager.topPlayer;
+        int bestScore = DataManager.dataManager.bestScore;
+
+        if (bestScore != 0)
+        {
+            bestScoreText.text = "Best Score >> " + bestPlayer + "'s " + bestScore;
+        }
+        else
+        {
+            bestScoreText.text = "";
+        }
     }
 }
